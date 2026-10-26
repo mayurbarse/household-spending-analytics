@@ -19,3 +19,5 @@ data/output/*.parquet
 # Frontend dependencies and build files
 node_modules/
 dist/
+
+src/*.bak
