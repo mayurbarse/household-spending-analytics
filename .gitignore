@@ -1,0 +1,21 @@
+﻿.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+!.env.example
+
+# Local database
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+
+# Large generated datasets and reports
+data/output/*.csv
+data/output/*.json
+data/output/*.parquet
+
+# Frontend dependencies and build files
+node_modules/
+dist/

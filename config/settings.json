@@ -1,0 +1,21 @@
+
+{
+  "project_name": "Household Spending Analytics",
+  "seed": 20261022,
+  
+"scale": {
+  "profiles": 1000,
+  "transactions": 500000,
+  "months": 12
+},
+  "date_range": {
+    "start_date": "2026-01-01",
+    "end_date": "2026-12-31"
+  },
+  "currency": "INR",
+  "reporting_timezone": "Asia/Kolkata",
+  "database_path": "database/app.db",
+  "data_directory": "data",
+  "transaction_id_prefix": "TXN-2026-",
+  "transaction_id_padding": 8
+}

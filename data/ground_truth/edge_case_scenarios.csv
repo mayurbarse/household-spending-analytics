@@ -1,0 +1,6 @@
+scenario_id,scenario_type,entity_ids,expected_treatment,actual_observation,status,expected_occurrence_date,example_utc_timestamp,expected_local_date,invalid_category_id
+GT-001,internal_transfer_double_count,"TXN-2026-00019909,TXN-2026-00019910",Exclude both transfer legs from spending.,Two linked transfer records share group TRF-00003955.,labelled,,,,
+GT-002,refund_misclassified_as_expense,TXN-2026-00381561,Treat as a refund/credit and offset eligible spending; do not add it as a positive expense.,Refund amount is 47100 paise and should be handled according to transaction type.,labelled,,,,
+GT-003,missing_recurring_occurrence,REC-USR-000001-SUBSCRIPTION,Flag the expected occurrence for review when no qualifying transaction matches it.,No recurring transaction link is created for this series in the synthetic baseline.,labelled,2026-11-15,,,
+GT-004,timezone_date_boundary,TZ-CASE-001,Convert UTC to Asia/Kolkata before assigning the local transaction date.,2026-01-01T20:00:00Z corresponds to 2026-01-02 01:30:00 in Asia/Kolkata.,labelled,,2026-01-01T20:00:00Z,2026-01-02,
+GT-005,budget_category_not_in_taxonomy,BUD-INVALID-001,Reject the budget because CAT-999 is not a valid category.,This is a labelled invalid-input test case; it is not inserted into the database.,labelled,,,,CAT-999
