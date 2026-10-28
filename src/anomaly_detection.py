@@ -118,7 +118,7 @@ def detect_unusual_transactions(
 
     eligible["_q1"] = quantile_rows["_q1"].to_numpy()
     eligible["_q3"] = quantile_rows["_q3"].to_numpy()
-    eligible.drop(columns="_row_order", inplace=True)
+    eligible = eligible.drop(columns="_row_order")
     eligible["_iqr"] = eligible["_q3"] - eligible["_q1"]
 
     zero_mad = ~has_mad
