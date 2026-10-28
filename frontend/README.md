@@ -4,6 +4,23 @@ A full-stack financial analytics dashboard built with Python, FastAPI, SQLite, R
 
 The dashboard provides an interactive view of financial activity, while the backend exposes analytics through REST API endpoints.
 
+## Dashboard Screenshots
+
+### Main Dashboard
+![Household Spending Analytics Main Dashboard](screenshots/main-dashboard.png)
+
+### Monthly and Yearly Spending Trends
+![Monthly and Yearly Spending Trends](screenshots/monthly-trends.png)
+
+### Budget vs Actual Spending
+![Budget vs Actual Spending](screenshots/budget-analysis.png)
+
+### Recurring Payment Detection
+![Recurring Payment Detection](screenshots/recurring-payments.png)
+
+### Anomaly Detection
+![Anomaly Detection](screenshots/anomaly-detection.png)
+
 ## Features
 
 - **Spending analytics:** Calculate gross expenses, refunds, and net spending while excluding internal transfers from expenses.
@@ -46,6 +63,12 @@ household-spending-analytics/
 ├── reports/
 ├── schemas/
 │   └── data_dictionary.md
+├── screenshots/
+│   ├── main-dashboard.png
+│   ├── monthly-trends.png
+│   ├── budget-analysis.png
+│   ├── recurring-payments.png
+│   └── anomaly-detection.png
 ├── src/
 │   ├── analytics.py
 │   ├── anomaly_detection.py
@@ -125,9 +148,7 @@ npm install
 npm run dev
 ```
 
-Open the local dashboard URL printed by Vite, usually:
-
-http://localhost:5173
+Open the local dashboard URL printed by Vite, usually http://localhost:5173.
 
 Keep both development servers running while using the dashboard.
 
@@ -147,7 +168,7 @@ Some endpoints support filtering and analysis parameters. Visit `/docs` for the 
 
 ## Performance Improvements
 
-The analytics pipeline includes measured optimizations to reduce computation time while preserving verified output:
+The analytics pipeline includes measured optimizations to reduce computation time while preserving verified output.
 
 | Component | Before | After | Speed improvement |
 |---|---:|---:|---:|
@@ -178,7 +199,6 @@ The latest recorded verification completed with **63 passing tests**. Run the te
 
 ## Future Improvements
 
-- Add more representative dashboard screenshots and sample outputs.
 - Evaluate recurring-payment and anomaly-detection precision and recall against labelled data.
 - Expand API integration and end-to-end testing.
 - Improve the realism of synthetic spending and budget distributions.

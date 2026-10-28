@@ -1,4 +1,4 @@
-# Household Spending Analytics
+﻿# Household Spending Analytics
 
 A Python-based financial analytics project built around synthetic household transaction data. It explores spending patterns, monthly budgets, recurring payments, unusual transactions, and data-quality edge cases through a SQLite database and REST API.
 
@@ -191,6 +191,13 @@ These scenarios support targeted validation; they do not by themselves establish
 - Improve detection of missed recurring payments and validate results across more edge cases.
 - Add further API integration and end-to-end tests.
 - Add representative, privacy-safe sample outputs and visualizations.
+
+## Supporting Documentation
+
+- [Test Cases and Validation](Household_Spending_Analytics_Test_Cases.docx)
+- [LLM Prompt History and AI Usage](Household_Spending_Analytics_LLM_Prompt_History.docx)
+
+
 
 ## Disclaimer
 
