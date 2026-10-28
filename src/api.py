@@ -1,12 +1,13 @@
 
 """FastAPI endpoints for household spending analytics."""
-
-import json
+from pathlib import Path
 import sqlite3
 from pathlib import Path
+import pandas as pd
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.analytics import load_transactions, spending_summary
 from src.config import PROJECT_ROOT
@@ -16,8 +17,20 @@ from src.recurring_detection import detect_recurring_payments
 
 app = FastAPI(
     title="Household Spending Analytics API",
-    description="API for household spending, trends, and budgets.",
+    description="API for household spending, trends, budgets, and anomalies.",
     version="1.0.0",
+)
+
+# Allow the local React/Vite frontend to call this API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 OUTPUT_DIR = PROJECT_ROOT / "data" / "output"
@@ -44,7 +57,9 @@ def health() -> dict:
             timeout=5,
         ) as connection:
             connection.execute("SELECT 1").fetchone()
+
         return {"status": "healthy", "database": "accessible"}
+
     except sqlite3.Error as exc:
         raise HTTPException(
             status_code=503,
@@ -52,17 +67,77 @@ def health() -> dict:
         ) from exc
 
 
+
 @app.get("/api/summary")
 def get_summary() -> dict:
-    """Return overall spending metrics."""
+    """Return overall spending metrics directly from SQLite."""
     try:
-        transactions = load_transactions()
-        return spending_summary(transactions)
-    except (ValueError, sqlite3.Error) as exc:
+        settings_path = PROJECT_ROOT / "config" / "settings.json"
+
+        import json
+
+        with settings_path.open("r", encoding="utf-8") as file:
+            settings = json.load(file)
+
+        if isinstance(settings.get("database"), dict):
+            database_setting = settings["database"]["path"]
+        else:
+            database_setting = settings.get("database_path")
+
+        if not database_setting:
+            raise ValueError("Database path not found in settings.json.")
+
+        db_path = Path(database_setting)
+        if not db_path.is_absolute():
+            db_path = PROJECT_ROOT / db_path
+
+        query = """
+            SELECT
+                COUNT(*) AS transaction_count,
+                COALESCE(SUM(CASE
+                    WHEN LOWER(TRIM(t.transaction_type))
+                         IN ('purchase', 'bill_payment', 'fee')
+                    THEN 1 ELSE 0
+                END), 0) AS expense_transaction_count,
+                COALESCE(SUM(CASE
+                    WHEN LOWER(TRIM(t.transaction_type)) = 'refund'
+                    THEN 1 ELSE 0
+                END), 0) AS refund_transaction_count,
+                COALESCE(SUM(CASE
+                    WHEN LOWER(TRIM(t.transaction_type))
+                         IN ('purchase', 'bill_payment', 'fee')
+                    THEN ABS(t.amount_minor) ELSE 0
+                END), 0) / 100.0 AS gross_expenses,
+                COALESCE(SUM(CASE
+                    WHEN LOWER(TRIM(t.transaction_type)) = 'refund'
+                    THEN ABS(t.amount_minor) ELSE 0
+                END), 0) / 100.0 AS refunds
+            FROM transactions AS t
+            JOIN accounts AS a ON t.account_id = a.account_id
+            WHERE t.status = 'posted'
+        """
+
+        with sqlite3.connect(str(db_path), timeout=10) as connection:
+            row = connection.execute(query).fetchone()
+
+        gross_expenses = float(row[3])
+        refunds = float(row[4])
+
+        return {
+            "transaction_count": int(row[0]),
+            "expense_transaction_count": int(row[1]),
+            "refund_transaction_count": int(row[2]),
+            "gross_expenses": round(gross_expenses, 2),
+            "refunds": round(refunds, 2),
+            "net_spending": round(gross_expenses - refunds, 2),
+        }
+
+    except (ValueError, sqlite3.Error, OSError) as exc:
         raise HTTPException(
             status_code=500,
             detail="Could not calculate spending summary.",
         ) from exc
+
 
 
 @app.get("/api/trends")
@@ -79,14 +154,12 @@ def get_trends(
             ]
 
         trends = calculate_monthly_trends(transactions)
-        records = trends.where(pd.notna(trends), None).to_dict(
-            orient="records"
-        )
+        records = trends.astype(object).where(
+            pd.notna(trends), None
+        ).to_dict(orient="records")
 
-        return {
-            "count": len(records),
-            "data": records,
-        }
+        return {"count": len(records), "data": records}
+
     except (ValueError, sqlite3.Error) as exc:
         raise HTTPException(
             status_code=500,
@@ -120,7 +193,10 @@ def get_budgets(
                     status_code=500,
                     detail="Budget report has no user_id column.",
                 )
-            budgets = budgets[budgets["user_id"].astype(str) == user_id]
+
+            budgets = budgets[
+                budgets["user_id"].astype(str) == user_id
+            ]
 
         if month is not None:
             month_column = next(
@@ -131,11 +207,13 @@ def get_budgets(
                 ),
                 None,
             )
+
             if month_column is None:
                 raise HTTPException(
                     status_code=500,
                     detail="Budget report has no month column.",
                 )
+
             budgets = budgets[
                 budgets[month_column].astype(str).str[:7] == month
             ]
@@ -148,13 +226,14 @@ def get_budgets(
             "count": len(budgets),
             "data": budgets.to_dict(orient="records"),
         }
+
     except (OSError, ValueError, pd.errors.ParserError) as exc:
         raise HTTPException(
             status_code=500,
             detail="Could not read the budget report.",
         ) from exc
 
-    
+
 @app.get("/api/recurring")
 def get_recurring_payments(
     user_id: str | None = Query(default=None, min_length=1),
@@ -173,15 +252,15 @@ def get_recurring_payments(
             pd.notna(recurring), None
         ).to_dict(orient="records")
 
-        return {
-            "count": len(records),
-            "data": records,
-        }
+        return {"count": len(records), "data": records}
+
     except (ValueError, sqlite3.Error) as exc:
         raise HTTPException(
             status_code=500,
             detail="Could not detect recurring payments.",
         ) from exc
+
+
 @app.get("/api/anomalies")
 def get_anomalies(
     user_id: str | None = Query(default=None, min_length=1),
@@ -208,24 +287,22 @@ def get_anomalies(
             pd.notna(anomalies), None
         )
 
-        records = anomalies.to_dict(orient="records")
-
         return {
-            "count": len(records),
+            "count": len(anomalies),
             "filters": {
                 "user_id": user_id,
                 "min_history": min_history,
                 "threshold": threshold,
             },
-            "data": records,
+            "data": anomalies.to_dict(orient="records"),
             "notice": (
                 "These are unusual spending patterns for review, "
                 "not confirmed fraud."
             ),
         }
+
     except (ValueError, sqlite3.Error) as exc:
         raise HTTPException(
             status_code=500,
             detail="Could not detect spending anomalies.",
-        ) from exc    
-
+        ) from exc

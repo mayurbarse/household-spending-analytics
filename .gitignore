@@ -21,3 +21,11 @@ node_modules/
 dist/
 
 src/*.bak
+
+# Local benchmark and optimization artifacts
+anomaly_baseline.pkl
+recurring_baseline.csv
+src/*.before_fast_version
+src/*.before_vectorized_optimization
+src/recurring_detection_before_optimization.py
+test_recurring_optimization.py

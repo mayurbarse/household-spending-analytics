@@ -1,8 +1,8 @@
-﻿# Household Spending Analytics
+# Household Spending Analytics
 
 A Python-based financial analytics project built around synthetic household transaction data. It explores spending patterns, monthly budgets, recurring payments, unusual transactions, and data-quality edge cases through a SQLite database and REST API.
 
-> **Project status:** Analytics and API backend implemented. React/Vite frontend is planned and has not yet been implemented.
+> **Project status:** Full-stack dashboard implemented with a FastAPI backend and React/Vite frontend.
 
 ## Features
 
@@ -185,7 +185,7 @@ These scenarios support targeted validation; they do not by themselves establish
 
 ## Limitations and Future Work
 
-- Implement the React/Vite dashboard.
+- Add more representative dashboard screenshots and sample outputs.
 - Improve the realism and calibration of synthetic spending and budget distributions.
 - Evaluate recurring-payment and anomaly-detection precision and recall against labelled data.
 - Improve detection of missed recurring payments and validate results across more edge cases.

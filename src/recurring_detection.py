@@ -14,44 +14,25 @@ def detect_recurring_payments(
     min_occurrences: int = MIN_OCCURRENCES,
     amount_tolerance: float = AMOUNT_TOLERANCE,
 ) -> pd.DataFrame:
-    """Identify likely monthly or weekly payments using transaction history.
-
-    Transactions are grouped by user, account, merchant, and transaction
-    type. A group is considered recurring when it has enough occurrences
-    and its dates and amounts show a consistent pattern.
-    """
+    """Experimental bulk-sort and bulk-deduplicate implementation."""
     required = {
-        "user_id",
-        "account_id",
-        "merchant_id",
-        "transaction_type",
-        "amount",
-        "transaction_date",
+        "user_id", "account_id", "merchant_id",
+        "transaction_type", "amount", "transaction_date",
     }
     missing = required - set(transactions.columns)
     if missing:
         raise ValueError(
             f"Missing required transaction columns: {sorted(missing)}"
         )
-
     if min_occurrences < 2:
         raise ValueError("min_occurrences must be at least 2.")
-
     if not 0 <= amount_tolerance < 1:
         raise ValueError("amount_tolerance must be between 0 and 1.")
 
     columns = [
-        "user_id",
-        "account_id",
-        "merchant_id",
-        "transaction_type",
-        "occurrences",
-        "average_amount",
-        "amount_variation_pct",
-        "average_interval_days",
-        "cadence",
-        "first_date",
-        "last_date",
+        "user_id", "account_id", "merchant_id", "transaction_type",
+        "occurrences", "average_amount", "amount_variation_pct",
+        "average_interval_days", "cadence", "first_date", "last_date",
         "confidence",
     ]
 
@@ -69,10 +50,12 @@ def detect_recurring_payments(
 
     if data["transaction_date"].isna().any():
         raise ValueError("Transaction dates must be valid.")
-
     if data["amount"].isna().any() or (data["amount"] < 0).any():
         raise ValueError("Amounts must be non-negative and not missing.")
 
+    group_columns = [
+        "user_id", "account_id", "merchant_id", "transaction_type"
+    ]
     data = data[
         data["transaction_type"].isin(RECURRING_TYPES)
         & data["merchant_id"].notna()
@@ -83,26 +66,23 @@ def detect_recurring_payments(
     if data.empty:
         return pd.DataFrame(columns=columns)
 
-    group_columns = [
-        "user_id",
-        "account_id",
-        "merchant_id",
-        "transaction_type",
-    ]
+    # Sort and deduplicate once across the full filtered DataFrame.
+    data = data.sort_values(
+        group_columns + ["transaction_date"],
+        kind="mergesort",
+    )
+    data = data.drop_duplicates(
+        subset=group_columns + ["transaction_date", "amount"]
+    )
+
     detections = []
 
-    for key, group in data.groupby(group_columns, dropna=True):
-        group = group.sort_values("transaction_date")
-        group = group.drop_duplicates(
-            subset=["transaction_date", "amount"]
-        )
-
+    for key, group in data.groupby(group_columns, dropna=True, sort=True):
         if len(group) < min_occurrences:
             continue
 
         amounts = group["amount"]
         average_amount = float(amounts.mean())
-
         if average_amount <= 0:
             continue
 
@@ -112,7 +92,6 @@ def detect_recurring_payments(
 
         dates = group["transaction_date"].drop_duplicates().sort_values()
         intervals = dates.diff().dropna().dt.total_seconds() / 86400
-
         if intervals.empty:
             continue
 
@@ -131,7 +110,6 @@ def detect_recurring_payments(
         else:
             continue
 
-        # Higher confidence requires more occurrences and more stable amounts.
         occurrence_score = min(len(group) / 6, 1.0)
         stability_score = max(
             0.0, 1.0 - variation / max(amount_tolerance, 0.01)
@@ -140,34 +118,28 @@ def detect_recurring_payments(
             100 * (0.6 * occurrence_score + 0.4 * stability_score), 1
         )
 
-        detections.append(
-            {
-                "user_id": key[0],
-                "account_id": key[1],
-                "merchant_id": key[2],
-                "transaction_type": key[3],
-                "occurrences": int(len(group)),
-                "average_amount": round(average_amount, 2),
-                "amount_variation_pct": round(variation * 100, 2),
-                "average_interval_days": round(average_interval, 1),
-                "cadence": cadence,
-                "first_date": dates.iloc[0].date().isoformat(),
-                "last_date": dates.iloc[-1].date().isoformat(),
-                "confidence": confidence,
-            }
-        )
+        detections.append({
+            "user_id": key[0],
+            "account_id": key[1],
+            "merchant_id": key[2],
+            "transaction_type": key[3],
+            "occurrences": int(len(group)),
+            "average_amount": round(average_amount, 2),
+            "amount_variation_pct": round(variation * 100, 2),
+            "average_interval_days": round(average_interval, 1),
+            "cadence": cadence,
+            "first_date": dates.iloc[0].date().isoformat(),
+            "last_date": dates.iloc[-1].date().isoformat(),
+            "confidence": confidence,
+        })
 
     if not detections:
         return pd.DataFrame(columns=columns)
 
-    return (
-        pd.DataFrame(detections, columns=columns)
-        .sort_values(
-            ["confidence", "occurrences"],
-            ascending=[False, False],
-        )
-        .reset_index(drop=True)
-    )
+    return pd.DataFrame(detections, columns=columns).sort_values(
+        ["confidence", "occurrences"],
+        ascending=[False, False],
+    ).reset_index(drop=True)
 
 def detect_missing_recurring_occurrences(
     recurring_series: pd.DataFrame,

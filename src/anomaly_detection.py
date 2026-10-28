@@ -77,9 +77,13 @@ def detect_unusual_transactions(
 
     eligible["_history_count"] = grouped.transform("count")
     eligible["_median"] = grouped.transform("median")
-    eligible["_mad"] = grouped.transform(
-        lambda values: (values - values.median()).abs().median()
-    )
+    deviation_frame = eligible[group_columns].copy()
+    deviation_frame["_deviation"] = (
+        eligible["amount"] - eligible["_median"]
+    ).abs()
+    eligible["_mad"] = deviation_frame.groupby(
+        group_columns, dropna=False
+    )["_deviation"].transform("median")
 
     # Use the robust modified z-score when MAD is non-zero.
     has_mad = eligible["_mad"] > 0
@@ -94,8 +98,27 @@ def detect_unusual_transactions(
     )
 
     # If MAD is zero, use the interquartile range as a fallback.
-    eligible["_q1"] = grouped.transform(lambda values: values.quantile(0.25))
-    eligible["_q3"] = grouped.transform(lambda values: values.quantile(0.75))
+    eligible["_row_order"] = range(len(eligible))
+
+    quantiles = (
+        eligible.groupby(group_columns, dropna=False)["amount"]
+        .quantile([0.25, 0.75])
+        .unstack()
+    )
+    quantiles.columns = ["_q1", "_q3"]
+    quantiles = quantiles.reset_index()
+
+    quantile_rows = eligible[group_columns + ["_row_order"]].merge(
+        quantiles,
+        on=group_columns,
+        how="left",
+        sort=False,
+        validate="many_to_one",
+    ).sort_values("_row_order", kind="stable")
+
+    eligible["_q1"] = quantile_rows["_q1"].to_numpy()
+    eligible["_q3"] = quantile_rows["_q3"].to_numpy()
+    eligible.drop(columns="_row_order", inplace=True)
     eligible["_iqr"] = eligible["_q3"] - eligible["_q1"]
 
     zero_mad = ~has_mad

@@ -1,0 +1,589 @@
+
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f6fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.dashboard {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 48px 28px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.eyebrow {
+  color: #5367d5;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+h1 {
+  margin: 10px 0;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -1.5px;
+}
+
+.subtitle {
+  color: #697386;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #dce5df;
+  border-radius: 24px;
+  background: white;
+  color: #287849;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #31ad69;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.metric-card,
+.panel {
+  border: 1px solid #e7eaf1;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 6px 24px #18264b08;
+}
+
+.metric-card {
+  min-width: 0;
+  padding: 24px;
+}
+
+.metric-card p {
+  margin: 0 0 18px;
+  color: #697386;
+  font-size: 14px;
+}
+
+.metric-card h2 {
+  margin: 0;
+  font-size: clamp(20px, 2.2vw, 29px);
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
+}
+
+.panel {
+  padding: 28px;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.panel-heading .eyebrow {
+  margin-top: 0;
+}
+
+.panel-heading h2 {
+  margin: 8px 0;
+  font-size: 23px;
+  letter-spacing: -0.6px;
+}
+
+.panel-heading .subtitle {
+  margin-bottom: 0;
+}
+
+.data-count {
+  padding: 7px 11px;
+  border-radius: 20px;
+  background: #f0f2ff;
+  color: #5367d5;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Monthly spending chart */
+
+.chart {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  height: 280px;
+  padding-top: 28px;
+  border-bottom: 1px solid #e7eaf1;
+}
+
+.chart-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
+}
+
+.bar-value {
+  min-height: 24px;
+  color: #697386;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.bar-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.bar {
+  width: min(100%, 38px);
+  min-height: 3px;
+  border-radius: 6px 6px 0 0;
+  background: #6475e8;
+  transition: height 0.3s ease, background 0.2s ease;
+}
+
+.bar:hover {
+  background: #3548c5;
+}
+
+.month-label {
+  padding: 10px 0;
+  color: #697386;
+  font-size: 12px;
+}
+
+.chart-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  color: #697386;
+  font-size: 12px;
+}
+
+.chart-footer span:last-child {
+  color: #172033;
+  font-weight: 700;
+}
+
+/* Budget analysis */
+
+.budget-panel {
+  margin-top: 28px;
+}
+
+.budget-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.budget-stat {
+  min-width: 0;
+  padding: 18px;
+  background: #f8f9fc;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+}
+
+.budget-stat p {
+  margin: 0 0 12px;
+  color: #697386;
+  font-size: 13px;
+}
+
+.budget-stat h3 {
+  margin: 0;
+  font-size: clamp(17px, 2vw, 24px);
+  overflow-wrap: anywhere;
+}
+
+.negative {
+  color: #c0392b;
+}
+
+.month-select {
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dce1eb;
+  border-radius: 9px;
+  background: white;
+  color: #172033;
+  font: inherit;
+  cursor: pointer;
+}
+
+.month-select:focus {
+  outline: 2px solid #6475e8;
+  outline-offset: 2px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e7eaf1;
+  border-radius: 12px;
+}
+
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.budget-table th {
+  padding: 14px;
+  background: #f8f9fc;
+  color: #697386;
+  font-weight: 700;
+}
+
+.budget-table td {
+  padding: 14px;
+  border-top: 1px solid #edf0f5;
+}
+
+.budget-table tbody tr:hover {
+  background: #fafbff;
+}
+
+.utilization {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 110px;
+}
+
+.utilization-track {
+  width: 65px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e9edf5;
+}
+
+.utilization-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: #31a56b;
+}
+
+.utilization-bar.over {
+  background: #df5555;
+}
+
+.budget-status {
+  display: inline-block;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.budget-status.over {
+  background: #fff0f0;
+  color: #bd3030;
+}
+
+.budget-status.within {
+  background: #eaf8ef;
+  color: #247744;
+}
+
+.table-note {
+  margin: 14px 0 0;
+  color: #697386;
+  font-size: 12px;
+}
+
+/* Footer and error state */
+
+footer {
+  margin-top: 28px;
+  color: #8a93a4;
+  font-size: 12px;
+}
+
+.error {
+  color: #b42318;
+}
+
+/* Responsive layout */
+
+@media (max-width: 760px) {
+  .dashboard {
+    padding: 30px 16px;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 18px;
+  }
+
+  .panel {
+    padding: 18px 12px;
+    overflow-x: auto;
+  }
+
+  .chart {
+    min-width: 570px;
+  }
+
+  .panel-heading {
+    min-width: 300px;
+  }
+
+  .chart-footer {
+    min-width: 300px;
+  }
+
+  .budget-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .budget-panel .panel-heading {
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .month-select {
+    width: 100%;
+  }
+
+  .budget-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 420px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Recurring payments */
+
+.recurring-panel {
+  margin-top: 28px;
+}
+
+.recurring-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.recurring-search {
+  display: block;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #dce1eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+}
+
+.recurring-search:focus {
+  outline: 2px solid #6475e8;
+  outline-offset: 2px;
+}
+
+.recurring-table {
+  min-width: 1050px;
+}
+
+.cadence-badge {
+  display: inline-block;
+  padding: 6px 9px;
+  border-radius: 20px;
+  background: #f0f2ff;
+  color: #5367d5;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.confidence-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+}
+
+.confidence-low {
+  background: #e4a23b;
+}
+
+@media (max-width: 760px) {
+  .recurring-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .recurring-panel .panel-heading {
+    min-width: 0;
+    flex-direction: column;
+  }
+}
+
+/* Anomaly detection */
+
+.anomaly-panel {
+  margin-top: 28px;
+}
+
+.anomaly-table {
+  min-width: 1200px;
+}
+
+.anomaly-amount {
+  color: #bd3030;
+  font-weight: 700;
+}
+
+.z-score-badge {
+  display: inline-block;
+  padding: 6px 9px;
+  border-radius: 20px;
+  background: #fff0f0;
+  color: #bd3030;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reason-cell {
+  max-width: 320px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .anomaly-panel .panel-heading {
+    min-width: 0;
+    flex-direction: column;
+  }
+}
+/* ===== UI readability and heading alignment ===== */
+
+/* Improve default text contrast */
+:root {
+  color: #172033;
+}
+
+/* Make all headings readable and centered */
+h1,
+h2,
+h3 {
+  color: #172033;
+  text-align: center;
+}
+
+/* Center the main dashboard title while keeping API status on the right */
+.header > div:first-child {
+  flex: 1;
+  text-align: center;
+}
+
+.header .eyebrow,
+.panel-heading .eyebrow {
+  color: #4358c7;
+}
+
+/* Make metric values clearly visible */
+.metric-card h2 {
+  color: #172033;
+}
+
+.metric-card p {
+  color: #505d73;
+}
+
+/* Center panel heading text without moving the count badge */
+.panel-heading > div {
+  flex: 1;
+  text-align: center;
+}
+
+.panel-heading .subtitle {
+  color: #505d73;
+}
+
+/* Improve readability of chart labels and supporting text */
+.bar-value,
+.month-label,
+.chart-footer,
+.table-note,
+.subtitle {
+  color: #505d73;
+}
+
+/* Keep table headings readable */
+.budget-table th {
+  color: #344054;
+}
+
+/* Improve footer contrast */
+footer {
+  color: #596579;
+}
+
+/* Keep the API status clearly visible */
+.status {
+  color: #216e43;
+}

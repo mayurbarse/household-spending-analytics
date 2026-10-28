@@ -3,6 +3,7 @@
 
 import json
 import sqlite3
+from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
@@ -14,7 +15,7 @@ EXPENSE_TYPES = {"purchase", "bill_payment", "fee"}
 REFUND_TYPES = {"refund"}
 
 
-def load_transactions(db_path=None) -> pd.DataFrame:
+def _load_transactions_uncached(db_path=None) -> pd.DataFrame:
     """Load posted transactions and associate each with its account owner."""
     if db_path is None:
         settings_path = PROJECT_ROOT / "config" / "settings.json"
@@ -66,6 +67,24 @@ def load_transactions(db_path=None) -> pd.DataFrame:
 
     return transactions
 
+
+@lru_cache(maxsize=1)
+def _load_default_transactions_cached() -> pd.DataFrame:
+    """Cache transactions loaded from the default database."""
+    return _load_transactions_uncached()
+
+
+def load_transactions(db_path=None) -> pd.DataFrame:
+    """Load transactions, caching the default database result."""
+    if db_path is not None:
+        return _load_transactions_uncached(db_path).copy()
+
+    return _load_default_transactions_cached().copy()
+
+
+def clear_transaction_cache() -> None:
+    """Clear cached transactions after the database is updated."""
+    _load_default_transactions_cached.cache_clear()
 
 def calculate_spending(transactions: pd.DataFrame) -> pd.DataFrame:
     """Calculate expenses, refunds, and net spending per transaction."""
